@@ -15,7 +15,7 @@ Para utilizar o programa sera necessesario ter instado:
 
 Para instalar todas as Bibliotecas, basta instalar usando o arquivo requirements.txt, com o seguinte comando:
 ```bash
-pip install -r requiremnts.txt
+pip install -r requirements.txt
 ```
 
 ## Utilização
