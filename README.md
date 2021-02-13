@@ -1,6 +1,10 @@
 # Youtube_downloader
 
-<img align="center" src="https://raw.githubusercontent.com/JN513/youtube_downloader/master/window.png" alt="Imagem da jánela">
+<span style="display:block;text-align:center">
+
+![Imagem da jánela](https://raw.githubusercontent.com/JN513/youtube_downloader/master/window.png)
+
+</span>
 
 Software para download de videos e musicas do Youtube feito com Python, PyQt5 e Pytube.
 
