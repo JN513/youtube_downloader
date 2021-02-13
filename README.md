@@ -13,7 +13,7 @@ Para utilizar o programa sera necessesario ter instado:
 
 Para instalar as bibliotecas necessarias para execução do programa, utilize o comando:
 ```bash
-pip install -r requiremnts.txt
+pip install -r requirements.txt
 ```
 
 ## Utilização
