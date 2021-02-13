@@ -1,10 +1,6 @@
 # Youtube_downloader
 
-<div class="d-flex justify-content-center">
-
-![Imagem da jánela](https://raw.githubusercontent.com/JN513/youtube_downloader/master/window.png)
-
-</div>
+<img align="center" src="https://raw.githubusercontent.com/JN513/youtube_downloader/master/window.png" alt="Imagem da jánela">
 
 Software para download de videos e musicas do Youtube feito com Python, PyQt5 e Pytube.
 
@@ -18,16 +14,12 @@ Para utilizar o programa sera necessesario ter instado:
 ## Instalação
 
 Para instalar todas as Bibliotecas, basta instalar usando o arquivo requirements.txt, com o seguinte comando:
-```bash
-pip install -r requirements.txt
-```
+``` pip install -r requirements.txt ```
 
 ## Utilização
 
 Após a instalação das dependencias utilize:
-```bash
-python3 main.py
-```
+``` python3 main.py ```
 Para rodar o programa.
 
 ## Duvidas e Bugs
