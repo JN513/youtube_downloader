@@ -1,4 +1,4 @@
-from logging import error
+from PyQt5.QtCore import  QUuid, Qt, QThread, pyqtSignal
 from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
@@ -31,6 +31,7 @@ class Window(QWidget):
         super().__init__()
         self.path_to_save = None
         self.type = 0
+        self.ittype = 1
         self.content = 0
         self.basedir = os.path.dirname(os.path.realpath(__file__))
         self.initUI()
@@ -144,7 +145,7 @@ class Window(QWidget):
         instagramTab = QWidget()
 
         self.it_top_label = QLabel()
-        self.it_top_label.setText("Insira um ou mais links separados por ';'.")
+        self.it_top_label.setText("Insira um ou mais links ou codigos separados por ';'.")
         self.it_input = QLineEdit()
 
         self.label_title_for_label_path = QLabel("Diretorio atual: ")
@@ -158,9 +159,27 @@ class Window(QWidget):
         btn_download = QPushButton("Baixar", self)
         btn_download.clicked.connect(self.download_insta)
 
+        self.ittype_label = QLabel("Tipo:")
+
+        self.btngroup3 = QButtonGroup()
+        self.itbtn1 = QRadioButton("Link")
+        self.itbtn2 = QRadioButton("Codigo")
+        self.itbtn2.setChecked(True)
+
+        self.btngroup3.addButton(self.itbtn1)
+        self.btngroup3.addButton(self.itbtn2)
+
+        self.itbtn1.toggled.connect(self.onClicked_type)
+        self.itbtn2.toggled.connect(self.onClicked_type)
+
         layout = QVBoxLayout()
+        layout_type = QVBoxLayout()
         layout_dir = QHBoxLayout()
         layout_status = QHBoxLayout()
+
+        layout_type.addWidget(self.ittype_label)
+        layout_type.addWidget(self.itbtn1)
+        layout_type.addWidget(self.itbtn2)
 
         layout_dir.addWidget(self.label_title_for_label_path)
         layout_dir.addWidget(self.label_path)
@@ -176,6 +195,7 @@ class Window(QWidget):
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.it_top_label)
         main_layout.addLayout(input_form)
+        main_layout.addLayout(layout_type)
         main_layout.addLayout(layout_dir)
         main_layout.addLayout(layout_status)
         main_layout.addLayout(layout)
@@ -253,12 +273,12 @@ class Window(QWidget):
 
     def download_insta(self):
         self.label_status.setText("Fazendo Download ...")
-        links = self.yt_input.text()
+        links = self.it_input.text()
 
         if self.path_to_save == None:
             self.path_to_save = self.basedir
 
-        ok, error = download_instagram(links, self.path_to_save)
+        ok, error = download_instagram(links, self.path_to_save, self.ittype)
 
         erro = ""
         if error > 0:
@@ -277,6 +297,10 @@ class Window(QWidget):
                 self.type = 0
             elif btn.text() == "Playlist":
                 self.type = 1
+            elif btn.text() == "Link":
+                self.ittype = 0
+            elif btn.text() == "Codigo":
+                self.ittype = 1
 
     def onClicked_content(self):
         btn = self.sender()
