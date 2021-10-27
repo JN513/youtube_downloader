@@ -1,3 +1,4 @@
+from PyQt5.QtCore import QUuid, Qt, QThread, pyqtSignal
 from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
@@ -12,11 +13,17 @@ from PyQt5.QtWidgets import (
     QButtonGroup,
     QMessageBox,
     QHBoxLayout,
+    QCheckBox,
+    QStyleFactory,
+    QTabWidget,
 )
-from moviepy.editor import AudioFileClip
-from pytube import YouTube, Playlist
+from core.core import download_instagram, download_youtube
 import sys
 import os
+
+VERSION = "1.0.0-beta"
+GITHUB = "https://github.com/JN513"
+REPOSITORY = "https://github.com/JN513/youtube_downloader"
 
 
 class Window(QWidget):
@@ -24,6 +31,7 @@ class Window(QWidget):
         super().__init__()
         self.path_to_save = None
         self.type = 0
+        self.ittype = 1
         self.content = 0
         self.basedir = os.path.dirname(os.path.realpath(__file__))
         self.initUI()
@@ -34,9 +42,24 @@ class Window(QWidget):
 
         self.setWindowTitle("Youtube download")
 
-        self.top_label = QLabel()
-        self.top_label.setText("Insira um ou mais links separados por ';'.")
-        self.input = QLineEdit()
+        tabs = QTabWidget()
+        tabs.addTab(self.youtube_UI(), "Youtube")
+        tabs.addTab(self.instagram_UI(), "Instagram")
+        tabs.addTab(self.info_UI(), "Info")
+
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(tabs)
+
+        self.setLayout(main_layout)
+
+        self.show()
+
+    def youtube_UI(self):
+        youtubeTab = QWidget()
+
+        self.yt_top_label = QLabel()
+        self.yt_top_label.setText("Insira um ou mais links separados por ';'.")
+        self.yt_input = QLineEdit()
 
         self.type_label = QLabel()
         self.type_label.setText("Tipo")
@@ -78,10 +101,10 @@ class Window(QWidget):
         btn_opendir.clicked.connect(self.select_save_dir)
 
         btn_download = QPushButton("Baixar", self)
-        btn_download.clicked.connect(self.download)
+        btn_download.clicked.connect(self.download_yt)
 
         input_form = QFormLayout()
-        input_form.addRow("Links:", self.input)
+        input_form.addRow("Links:", self.yt_input)
 
         layout = QVBoxLayout()
         layout_type = QVBoxLayout()
@@ -106,7 +129,7 @@ class Window(QWidget):
         layout_status.addWidget(self.label_status)
 
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.top_label)
+        main_layout.addWidget(self.yt_top_label)
         main_layout.addLayout(input_form)
         main_layout.addLayout(layout_type)
         main_layout.addLayout(layout_content)
@@ -114,9 +137,110 @@ class Window(QWidget):
         main_layout.addLayout(layout_status)
         main_layout.addLayout(layout)
 
-        self.setLayout(main_layout)
+        youtubeTab.setLayout(main_layout)
 
-        self.show()
+        return youtubeTab
+
+    def instagram_UI(self):
+        instagramTab = QWidget()
+
+        self.it_top_label = QLabel()
+        self.it_top_label.setText(
+            "Insira um ou mais links ou codigos separados por ';'."
+        )
+        self.it_input = QLineEdit()
+
+        self.label_title_for_label_path = QLabel("Diretorio atual: ")
+        self.label_path = QLabel()
+        if self.path_to_save == None:
+            self.label_path.setText(self.basedir)
+
+        btn_opendir = QPushButton("Escolher diretorio", self)
+        btn_opendir.clicked.connect(self.select_save_dir)
+
+        btn_download = QPushButton("Baixar", self)
+        btn_download.clicked.connect(self.download_insta)
+
+        self.ittype_label = QLabel("Tipo:")
+
+        self.btngroup3 = QButtonGroup()
+        self.itbtn1 = QRadioButton("Link")
+        self.itbtn2 = QRadioButton("Codigo")
+        self.itbtn2.setChecked(True)
+
+        self.btngroup3.addButton(self.itbtn1)
+        self.btngroup3.addButton(self.itbtn2)
+
+        self.itbtn1.toggled.connect(self.onClicked_type)
+        self.itbtn2.toggled.connect(self.onClicked_type)
+
+        layout = QVBoxLayout()
+        layout_type = QVBoxLayout()
+        layout_dir = QHBoxLayout()
+        layout_status = QHBoxLayout()
+
+        layout_type.addWidget(self.ittype_label)
+        layout_type.addWidget(self.itbtn1)
+        layout_type.addWidget(self.itbtn2)
+
+        layout_dir.addWidget(self.label_title_for_label_path)
+        layout_dir.addWidget(self.label_path)
+
+        layout.addWidget(btn_opendir)
+        layout.addWidget(btn_download)
+
+        layout_status.addWidget(self.label_status)
+
+        input_form = QFormLayout()
+        input_form.addRow("Links:", self.it_input)
+
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.it_top_label)
+        main_layout.addLayout(input_form)
+        main_layout.addLayout(layout_type)
+        main_layout.addLayout(layout_dir)
+        main_layout.addLayout(layout_status)
+        main_layout.addLayout(layout)
+
+        instagramTab.setLayout(main_layout)
+
+        return instagramTab
+
+    def info_UI(self):
+        infoTab = QWidget()
+
+        linkTemplate = "<a href={0}>{1}</a>"
+
+        autor_label = QLabel("Criado por: Julio Nunes Avelar")
+        github_label = QLabel("Github: ")
+        github_link = QLabel(linkTemplate.format(GITHUB, GITHUB))
+        github_link.setOpenExternalLinks(True)
+        repositorio_label = QLabel("Repositorio: ")
+        repositorio_link = QLabel(linkTemplate.format(REPOSITORY, REPOSITORY))
+        repositorio_link.setOpenExternalLinks(True)
+        sobre_label = QLabel(
+            "Sobre: Este programa foi criado para facilitar o download de vídeos do youtube e instagram."
+        )
+        version_label = QLabel(f"Versao: {VERSION}")
+
+        github_layout = QHBoxLayout()
+        github_layout.addWidget(github_label)
+        github_layout.addWidget(github_link)
+
+        repositorio_layout = QHBoxLayout()
+        repositorio_layout.addWidget(repositorio_label)
+        repositorio_layout.addWidget(repositorio_link)
+
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(autor_label)
+        main_layout.addLayout(github_layout)
+        main_layout.addLayout(repositorio_layout)
+        main_layout.addWidget(sobre_label)
+        main_layout.addWidget(version_label)
+
+        infoTab.setLayout(main_layout)
+
+        return infoTab
 
     def select_save_dir(self):
         dir_ = QFileDialog.getExistingDirectory(
@@ -125,92 +249,42 @@ class Window(QWidget):
         self.path_to_save = dir_
         self.label_path.setText(dir_)
 
-    def download(self):
+    def download_yt(self):
 
-        links = self.input.text()
-        links = links.split(";")
+        self.label_status.setText("Fazendo Download ...")
+        links = self.yt_input.text()
 
         if self.path_to_save == None:
             self.path_to_save = self.basedir
 
-        playlist_error = 0
-        video_error = 0
-
-        for link in links:
-            if self.type == 0:
-                try:
-                    video = YouTube(link)
-                    if self.content == 1:
-                        stream = video.streams.get_highest_resolution()
-                        self.label_status.setText("Fazendo Download ...")
-                        stream.download(self.path_to_save)
-
-                    elif self.content == 0:
-                        audio = video.streams.filter(only_audio=True).first()
-                        self.label_status.setText("Fazendo Download ...")
-                        audio.download(self.path_to_save)
-                        self.label_status.setText("Convertendo ...")
-                        mp4_path = os.path.join(
-                            self.path_to_save, audio.default_filename
-                        )
-                        mp3_path = os.path.join(
-                            self.path_to_save,
-                            os.path.splitext(audio.default_filename)[0] + ".mp3",
-                        )
-                        new_file = AudioFileClip(mp4_path)
-                        new_file.write_audiofile(mp3_path)
-                        os.remove(mp4_path)
-                except:
-                    self.alert(
-                        "Erro ao baixar video",
-                        "Verifique o link e sua conexão com a internet e tente novamente",
-                    )
-                    video_error += 1
-            if self.type == 1:
-                try:
-                    playlist = Playlist(link)
-                    for url in playlist:
-                        try:
-                            video = YouTube(url)
-                            if self.content == 1:
-                                stream = video.streams.get_highest_resolution()
-                                self.label_status.setText("Fazendo Download ...")
-                                stream.download(self.path_to_save)
-
-                            elif self.content == 0:
-                                audio = video.streams.filter(only_audio=True).first()
-                                self.label_status.setText("Fazendo Download ...")
-                                audio.download(self.path_to_save)
-                                self.label_status.setText("Convertendo ...")
-                                mp4_path = os.path.join(
-                                    self.path_to_save, audio.default_filename
-                                )
-                                mp3_path = os.path.join(
-                                    self.path_to_save,
-                                    os.path.splitext(audio.default_filename)[0]
-                                    + ".mp3",
-                                )
-                                new_file = AudioFileClip(mp4_path)
-                                new_file.write_audiofile(mp3_path)
-                                os.remove(mp4_path)
-                        except:
-                            self.alert(
-                                "Erro ao baixar video",
-                                "Verifique o link e sua conexão com a internet e tente novamente",
-                            )
-                            video_error += 1
-                except:
-                    self.alert(
-                        "Erro ao abrir playlist",
-                        "Verifique o link e sua conexão com a internet e tente novamente",
-                    )
-                    playlist_error += 1
+        ok, video_error, playlist_error = download_youtube(
+            links, self.path_to_save, self.type, self.content
+        )
 
         erro = ""
         if playlist_error > 0:
             erro += f" Erro ao abrir {playlist_error} playlists."
         if video_error > 0:
             erro += f" Erro ao baixar {video_error} video(s)."
+
+        self.label_status.setText("Download(s) Concluidos")
+        self.alert(
+            "Download(s) Concluidos.",
+            "Todos os downloads possiveis foram finalizados." + erro,
+        )
+
+    def download_insta(self):
+        self.label_status.setText("Fazendo Download ...")
+        links = self.it_input.text()
+
+        if self.path_to_save == None:
+            self.path_to_save = self.basedir
+
+        ok, error = download_instagram(links, self.path_to_save, self.ittype)
+
+        erro = ""
+        if error > 0:
+            erro += f" Erro ao baixar {error} imagem(s)/video(s)."
 
         self.label_status.setText("Download(s) Concluidos")
         self.alert(
@@ -225,6 +299,10 @@ class Window(QWidget):
                 self.type = 0
             elif btn.text() == "Playlist":
                 self.type = 1
+            elif btn.text() == "Link":
+                self.ittype = 0
+            elif btn.text() == "Codigo":
+                self.ittype = 1
 
     def onClicked_content(self):
         btn = self.sender()
