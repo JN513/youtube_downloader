@@ -21,7 +21,7 @@ from core.core import download_instagram, download_youtube
 import sys
 import os
 
-VERSION = "1.0.0-beta"
+VERSION = "1.0.1-beta"
 GITHUB = "https://github.com/JN513"
 REPOSITORY = "https://github.com/JN513/youtube_downloader"
 
