@@ -105,10 +105,10 @@ def download_instagram(inputs: str, path_to_save: str, link_type: int):
 
             post = instaloader.Post.from_shortcode(insta.context, found)
             insta.download_post(post, path_to_save)
-        
+
         except Exception as e:
             print(e)
             ok = False
             error += 1
-        
+
     return ok, error

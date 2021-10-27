@@ -1,4 +1,4 @@
-from PyQt5.QtCore import  QUuid, Qt, QThread, pyqtSignal
+from PyQt5.QtCore import QUuid, Qt, QThread, pyqtSignal
 from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
@@ -145,7 +145,9 @@ class Window(QWidget):
         instagramTab = QWidget()
 
         self.it_top_label = QLabel()
-        self.it_top_label.setText("Insira um ou mais links ou codigos separados por ';'.")
+        self.it_top_label.setText(
+            "Insira um ou mais links ou codigos separados por ';'."
+        )
         self.it_input = QLineEdit()
 
         self.label_title_for_label_path = QLabel("Diretorio atual: ")
