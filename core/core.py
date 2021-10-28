@@ -38,18 +38,24 @@ def download_youtube(inputs: str, path_to_save: str, type: int, content: int):
     playlist_error = 0
     video_error = 0
 
+    print("Downloading...")
+
     for link in links:
         if type == 0:
+            print("Downloading video...")
             if not _download_youtube(link, path_to_save, content):
                 ok = False
                 video_error += 1
         if type == 1:
             playlist = Playlist(link)
+            print("Downloading playlist...")
             for url in playlist:
                 if not _download_youtube(url, path_to_save, content):
                     ok = False
                     playlist_error += 1
                     video_error += 1
+
+    print("Done!")
 
     return ok, video_error, playlist_error
 
