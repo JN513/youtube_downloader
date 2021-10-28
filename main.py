@@ -256,10 +256,11 @@ class Window(QWidget):
         if self.path_to_save == None:
             self.path_to_save = self.basedir
 
-
         self.thread = QThread()
-        
-        self.worker = YoutubeDownloadThread(self.path_to_save, links, self.type, self.content)
+
+        self.worker = YoutubeDownloadThread(
+            self.path_to_save, links, self.type, self.content
+        )
 
         self.worker.moveToThread(self.thread)
 
@@ -275,13 +276,10 @@ class Window(QWidget):
         print(f"Thread iniciada")
 
         self.btn_download.setEnabled(False)
-        self.thread.finished.connect(
-            lambda: self.btn_download.setEnabled(True)
-        )
+        self.thread.finished.connect(lambda: self.btn_download.setEnabled(True))
         self.thread.finished.connect(
             lambda: self.label_status.setText("Download(s) Concluidos")
         )
-
 
     def download_insta(self):
         self.label_status.setText("Fazendo Download ...")
@@ -291,7 +289,7 @@ class Window(QWidget):
             self.path_to_save = self.basedir
 
         self.thread_it = QThread()
-        
+
         self.worker_it = InstagramDownloadThread(links, self.path_to_save, self.ittype)
 
         self.worker_it.moveToThread(self.thread_it)
@@ -308,13 +306,10 @@ class Window(QWidget):
         print(f"Thread iniciada")
 
         self.it_btn_download.setEnabled(False)
-        self.thread_it.finished.connect(
-            lambda: self.it_btn_download.setEnabled(True)
-        )
+        self.thread_it.finished.connect(lambda: self.it_btn_download.setEnabled(True))
         self.thread_it.finished.connect(
             lambda: self.label_status.setText("Download(s) Concluidos")
         )
-
 
     def onClicked_type(self):
         btn = self.sender()

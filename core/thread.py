@@ -12,7 +12,6 @@ class YoutubeDownloadThread(QObject):
         self.links = links
         self.type = type
         self.content = content
-    
 
     def run(self):
         print("YoutubeDownloadThread: run")
