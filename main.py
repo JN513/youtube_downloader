@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QUuid, Qt, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QThread
 from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
@@ -13,11 +13,9 @@ from PyQt5.QtWidgets import (
     QButtonGroup,
     QMessageBox,
     QHBoxLayout,
-    QCheckBox,
-    QStyleFactory,
     QTabWidget,
 )
-from core.core import download_instagram, download_youtube
+from core.thread import YoutubeDownloadThread, InstagramDownloadThread
 import sys
 import os
 
@@ -34,6 +32,7 @@ class Window(QWidget):
         self.ittype = 1
         self.content = 0
         self.basedir = os.path.dirname(os.path.realpath(__file__))
+
         self.initUI()
 
     def initUI(self):
@@ -100,8 +99,8 @@ class Window(QWidget):
         btn_opendir = QPushButton("Escolher diretorio", self)
         btn_opendir.clicked.connect(self.select_save_dir)
 
-        btn_download = QPushButton("Baixar", self)
-        btn_download.clicked.connect(self.download_yt)
+        self.btn_download = QPushButton("Baixar", self)
+        self.btn_download.clicked.connect(self.download_yt)
 
         input_form = QFormLayout()
         input_form.addRow("Links:", self.yt_input)
@@ -113,7 +112,7 @@ class Window(QWidget):
         layout_status = QHBoxLayout()
 
         layout.addWidget(btn_opendir)
-        layout.addWidget(btn_download)
+        layout.addWidget(self.btn_download)
 
         layout_type.addWidget(self.type_label)
         layout_type.addWidget(self.rbty1)
@@ -158,8 +157,8 @@ class Window(QWidget):
         btn_opendir = QPushButton("Escolher diretorio", self)
         btn_opendir.clicked.connect(self.select_save_dir)
 
-        btn_download = QPushButton("Baixar", self)
-        btn_download.clicked.connect(self.download_insta)
+        self.it_btn_download = QPushButton("Baixar", self)
+        self.it_btn_download.clicked.connect(self.download_insta)
 
         self.ittype_label = QLabel("Tipo:")
 
@@ -187,7 +186,7 @@ class Window(QWidget):
         layout_dir.addWidget(self.label_path)
 
         layout.addWidget(btn_opendir)
-        layout.addWidget(btn_download)
+        layout.addWidget(self.it_btn_download)
 
         layout_status.addWidget(self.label_status)
 
@@ -257,21 +256,32 @@ class Window(QWidget):
         if self.path_to_save == None:
             self.path_to_save = self.basedir
 
-        ok, video_error, playlist_error = download_youtube(
-            links, self.path_to_save, self.type, self.content
+
+        self.thread = QThread()
+        
+        self.worker = YoutubeDownloadThread(self.path_to_save, links, self.type, self.content)
+
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.thread.deleteLater)
+        self.worker.alert.connect(self.alert)
+
+        print(f"Thread criada")
+
+        self.thread.start()
+
+        print(f"Thread iniciada")
+
+        self.btn_download.setEnabled(False)
+        self.thread.finished.connect(
+            lambda: self.btn_download.setEnabled(True)
+        )
+        self.thread.finished.connect(
+            lambda: self.label_status.setText("Download(s) Concluidos")
         )
 
-        erro = ""
-        if playlist_error > 0:
-            erro += f" Erro ao abrir {playlist_error} playlists."
-        if video_error > 0:
-            erro += f" Erro ao baixar {video_error} video(s)."
-
-        self.label_status.setText("Download(s) Concluidos")
-        self.alert(
-            "Download(s) Concluidos.",
-            "Todos os downloads possiveis foram finalizados." + erro,
-        )
 
     def download_insta(self):
         self.label_status.setText("Fazendo Download ...")
@@ -280,17 +290,31 @@ class Window(QWidget):
         if self.path_to_save == None:
             self.path_to_save = self.basedir
 
-        ok, error = download_instagram(links, self.path_to_save, self.ittype)
+        self.thread_it = QThread()
+        
+        self.worker_it = InstagramDownloadThread(links, self.path_to_save, self.ittype)
 
-        erro = ""
-        if error > 0:
-            erro += f" Erro ao baixar {error} imagem(s)/video(s)."
+        self.worker_it.moveToThread(self.thread_it)
 
-        self.label_status.setText("Download(s) Concluidos")
-        self.alert(
-            "Download(s) Concluidos.",
-            "Todos os downloads possiveis foram finalizados." + erro,
+        self.thread_it.started.connect(self.worker_it.run)
+        self.worker_it.finished.connect(self.thread_it.quit)
+        self.worker_it.finished.connect(self.thread_it.deleteLater)
+        self.worker_it.alert.connect(self.alert)
+
+        print(f"Thread criada")
+
+        self.thread_it.start()
+
+        print(f"Thread iniciada")
+
+        self.it_btn_download.setEnabled(False)
+        self.thread_it.finished.connect(
+            lambda: self.it_btn_download.setEnabled(True)
         )
+        self.thread_it.finished.connect(
+            lambda: self.label_status.setText("Download(s) Concluidos")
+        )
+
 
     def onClicked_type(self):
         btn = self.sender()
