@@ -8,7 +8,7 @@ Software para download de videos e musicas do Youtube feito com Python, PyQt5 e 
 
 Para utilizar o programa sera necessesario ter instado:
 
-* Versão 3.0 ou superior do **[Python](https://www.python.org/)** (testei na 3.8);
+* Versão 3.0 ou superior do **[Python](https://www.python.org/)** (testei na 3.8 e 3.10);
 * **[Python-pip](https://pt.stackoverflow.com/questions/239047/como-instalar-o-pip-no-windows-10)**.
 
 ## Instalação
