@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QTabWidget,
 )
-from core.thread import YoutubeDownloadThread, InstagramDownloadThread
+from core.thread import YoutubeDownloadThread, InstagramDownloadThread, SpotifyDownloadThread
 import sys
 import os
 
@@ -30,6 +30,7 @@ class Window(QWidget):
         self.path_to_save = None
         self.type = 0
         self.ittype = 1
+        self.sptype = "mp3"
         self.content = 0
         self.basedir = os.path.dirname(os.path.realpath(__file__))
 
@@ -44,6 +45,7 @@ class Window(QWidget):
         tabs = QTabWidget()
         tabs.addTab(self.youtube_UI(), "Youtube")
         tabs.addTab(self.instagram_UI(), "Instagram")
+        tabs.addTab(self.spotify_UI(), "Spotify")
         tabs.addTab(self.info_UI(), "Info")
 
         main_layout = QVBoxLayout()
@@ -205,6 +207,87 @@ class Window(QWidget):
 
         return instagramTab
 
+    def spotify_UI(self):
+        spotifyTab = QWidget()
+
+        self.sp_top_label = QLabel()
+        self.sp_top_label.setText("Insira um ou mais links separados por ';'.")
+        self.sp_input = QLineEdit()
+
+        self.label_title_for_label_path = QLabel("Diretorio atual: ")
+        self.label_path = QLabel()
+        if self.path_to_save == None:
+            self.label_path.setText(self.basedir)
+
+        btn_opendir = QPushButton("Escolher diretorio", self)
+        btn_opendir.clicked.connect(self.select_save_dir)
+
+        self.sp_btn_download = QPushButton("Baixar", self)
+        self.sp_btn_download.clicked.connect(self.download_spotify)
+
+        self.sptype_label = QLabel("Tipo:")
+
+        self.btngroup4 = QButtonGroup()
+
+        self.spbtn1 = QRadioButton("mp3")
+        self.spbtn2 = QRadioButton("wav")
+        self.spbtn3 = QRadioButton("m4a")
+        self.spbtn4 = QRadioButton("flac")
+        self.spbtn5 = QRadioButton("opus")
+        self.spbtn6 = QRadioButton("ogg")
+
+        self.spbtn1.setChecked(True)
+
+        self.btngroup4.addButton(self.spbtn1)
+        self.btngroup4.addButton(self.spbtn2)
+        self.btngroup4.addButton(self.spbtn3)
+        self.btngroup4.addButton(self.spbtn4)
+        self.btngroup4.addButton(self.spbtn5)
+        self.btngroup4.addButton(self.spbtn6)
+
+        self.spbtn1.toggled.connect(self.onClicked_sp_type)
+        self.spbtn2.toggled.connect(self.onClicked_sp_type)
+        self.spbtn3.toggled.connect(self.onClicked_sp_type)
+        self.spbtn4.toggled.connect(self.onClicked_sp_type)
+        self.spbtn5.toggled.connect(self.onClicked_sp_type)
+        self.spbtn6.toggled.connect(self.onClicked_sp_type)
+
+        layout = QVBoxLayout()
+        layout_type = QVBoxLayout()
+        layout_dir = QHBoxLayout()
+        layout_status = QHBoxLayout()
+
+        layout_type.addWidget(self.sptype_label)
+        layout_type.addWidget(self.spbtn1)
+        layout_type.addWidget(self.spbtn2)
+        layout_type.addWidget(self.spbtn3)
+        layout_type.addWidget(self.spbtn4)
+        layout_type.addWidget(self.spbtn5)
+        layout_type.addWidget(self.spbtn6)
+
+        layout_dir.addWidget(self.label_title_for_label_path)
+        layout_dir.addWidget(self.label_path)
+
+        layout.addWidget(btn_opendir)
+        layout.addWidget(self.sp_btn_download)
+
+        layout_status.addWidget(self.label_status)
+
+        input_form = QFormLayout()
+        input_form.addRow("Links:", self.sp_input)
+
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.sp_top_label)
+        main_layout.addLayout(input_form)
+        main_layout.addLayout(layout_type)
+        main_layout.addLayout(layout_dir)
+        main_layout.addLayout(layout_status)
+        main_layout.addLayout(layout)
+
+        spotifyTab.setLayout(main_layout)
+
+        return spotifyTab
+
     def info_UI(self):
         infoTab = QWidget()
 
@@ -311,6 +394,40 @@ class Window(QWidget):
             lambda: self.label_status.setText("Download(s) Concluidos")
         )
 
+    def download_spotify(self):
+        self.label_status.setText("Fazendo Download ...")
+
+        links = self.sp_input.text()
+
+        if self.path_to_save == None:
+            self.path_to_save = self.basedir
+
+        self.thread_sp = QThread()
+
+        self.worker_sp = SpotifyDownloadThread(
+            links, self.path_to_save, self.sptype
+        )
+
+
+        self.worker_sp.moveToThread(self.thread_sp)
+
+        self.thread_sp.started.connect(self.worker_sp.run)
+        self.worker_sp.finished.connect(self.thread_sp.quit)
+        self.worker_sp.finished.connect(self.thread_sp.deleteLater)
+        self.worker_sp.alert.connect(self.alert)
+
+        print(f"Thread criada")
+
+        self.thread_sp.start()
+
+        print(f"Thread iniciada")
+
+        self.sp_btn_download.setEnabled(False)
+        self.thread_sp.finished.connect(lambda: self.sp_btn_download.setEnabled(True))
+        self.thread_sp.finished.connect(
+            lambda: self.label_status.setText("Download(s) Concluidos")
+        )
+
     def onClicked_type(self):
         btn = self.sender()
         if btn.isChecked():
@@ -330,6 +447,23 @@ class Window(QWidget):
                 self.content = 0
             elif btn.text() == "MP4":
                 self.content = 1
+
+    def onClicked_sp_type(self):
+        btn = self.sender()
+        if btn.isChecked():
+            if btn.text() == "mp3":
+                self.sptype = "mp3"
+            elif btn.text() == "wav":
+                self.sptype = "wav"
+            elif btn.text() == "m4a":
+                self.sptype = "m4a"
+            elif btn.text() == "flac":
+                self.sptype = "flac"
+            elif btn.text() == "opus":
+                self.sptype = "opus"
+            elif btn.text() == "ogg":
+                self.sptype = "ogg"
+
 
     def alert(self, content, body):
         msg = QMessageBox()
