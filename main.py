@@ -15,7 +15,11 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QTabWidget,
 )
-from core.thread import YoutubeDownloadThread, InstagramDownloadThread, SpotifyDownloadThread
+from core.thread import (
+    YoutubeDownloadThread,
+    InstagramDownloadThread,
+    SpotifyDownloadThread,
+)
 import sys
 import os
 
@@ -404,10 +408,7 @@ class Window(QWidget):
 
         self.thread_sp = QThread()
 
-        self.worker_sp = SpotifyDownloadThread(
-            links, self.path_to_save, self.sptype
-        )
-
+        self.worker_sp = SpotifyDownloadThread(links, self.path_to_save, self.sptype)
 
         self.worker_sp.moveToThread(self.thread_sp)
 
@@ -463,7 +464,6 @@ class Window(QWidget):
                 self.sptype = "opus"
             elif btn.text() == "ogg":
                 self.sptype = "ogg"
-
 
     def alert(self, content, body):
         msg = QMessageBox()

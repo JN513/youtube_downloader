@@ -63,7 +63,7 @@ class SpotifyDownloadThread(QObject):
     finished = pyqtSignal()
     alert = pyqtSignal(str, str)
 
-    def __init__(self, links, path_to_save, format_to_Save = "mp3"):
+    def __init__(self, links, path_to_save, format_to_Save="mp3"):
         super().__init__()
         self.path_to_save = path_to_save
         self.links = links
