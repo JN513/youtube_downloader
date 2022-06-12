@@ -118,3 +118,17 @@ def download_instagram(inputs: str, path_to_save: str, link_type: int):
             error += 1
 
     return ok, error
+
+
+def download_spotify(inputs: str, path_to_save: str, format_to_save: str):
+    inputs = inputs.replace(";", " ")
+
+    try:
+        os.system(
+            f"spotdl {inputs} --output-format {format_to_save} --output {path_to_save}"
+        )
+    except Exception as e:
+        print(e)
+        return False, 1
+
+    return True, 0
